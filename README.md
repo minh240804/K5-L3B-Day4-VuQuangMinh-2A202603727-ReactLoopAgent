@@ -58,6 +58,18 @@ Chọn cấu hình khác nếu cần:
 
 Ví dụ chuyển sang Gemini: `export PROVIDER=gemini`, đặt `GEMINI_API_KEY` và `MODEL` phù hợp. Chọn một provider; không cần cả bốn key. File `.env.example` chỉ là mẫu: chương trình **không tự đọc `.env`**. Không commit key hay trace chứa dữ liệu nhạy cảm.
 
+Nếu key cá nhân được cấp qua gateway tương thích API, đặt base URL chỉ trong terminal.
+Ví dụ PowerShell với một gateway tương thích OpenAI:
+
+```powershell
+$env:OPENAI_BASE_URL = "https://gateway.example/v1"
+```
+
+Adapter tự nối `/chat/completions`. Nếu cần chỉ định full endpoint, dùng
+`OPENAI_API_URL`; biến full endpoint có ưu tiên cao hơn base URL. Không commit URL
+cá nhân hoặc key. Khi các biến override không tồn tại, như trên máy chấm bài,
+chương trình dùng endpoint chính thức trong `providers.py`.
+
 Adapter dùng Chat Completions cho OpenAI, Gemini compatibility và OpenRouter; Anthropic dùng Messages API. Nó phục vụ **tool calling cơ bản**, không bao phủ mọi tính năng đặc thù model như extended thinking. Khi provider từ chối model hoặc hết quota, kiểm tra quyền truy cập, model ID và key. Xem tài liệu: [OpenAI](https://developers.openai.com/api/docs/guides/function-calling), [Gemini](https://ai.google.dev/gemini-api/docs/openai), [Anthropic](https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works), [OpenRouter](https://openrouter.ai/docs/guides/features/tool-calling).
 
 ## 2. Chạy thử

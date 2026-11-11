@@ -11,6 +11,40 @@ CONFIG = {
     'anthropic': ('ANTHROPIC_API_KEY', 'https://api.anthropic.com/v1/messages'),
 }
 
+# Override tùy chọn cho gateway tương thích API ở máy cá nhân. Khi không đặt
+# biến môi trường, adapter luôn dùng endpoint chính thức trong CONFIG.
+API_URL_ENV = {
+    'openai': 'OPENAI_API_URL',
+    'gemini': 'GEMINI_API_URL',
+    'openrouter': 'OPENROUTER_API_URL',
+    'anthropic': 'ANTHROPIC_API_URL',
+}
+
+BASE_URL_ENV = {
+    'openai': 'OPENAI_BASE_URL',
+    'gemini': 'GEMINI_BASE_URL',
+    'openrouter': 'OPENROUTER_BASE_URL',
+    'anthropic': 'ANTHROPIC_BASE_URL',
+}
+
+ENDPOINT_PATH = {
+    'openai': 'chat/completions',
+    'gemini': 'chat/completions',
+    'openrouter': 'chat/completions',
+    'anthropic': 'messages',
+}
+
+
+def resolve_api_url(name, official_url):
+    """Ưu tiên full API URL, sau đó base URL, cuối cùng endpoint chính thức."""
+    full_url = os.getenv(API_URL_ENV[name])
+    if full_url:
+        return full_url
+    base_url = os.getenv(BASE_URL_ENV[name])
+    if base_url:
+        return f'{base_url.rstrip("/")}/{ENDPOINT_PATH[name]}'
+    return official_url
+
 
 def post_json(url, headers, payload):
     req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json', **headers})
@@ -36,7 +70,8 @@ class Provider:
         if not model:
             raise ValueError('Cần đặt MODEL là model có hỗ trợ tool calling.')
         self.name, self.model = name, model
-        key_name, self.url = CONFIG[name]
+        key_name, official_url = CONFIG[name]
+        self.url = resolve_api_url(name, official_url)
         self.key = os.getenv(key_name)
         if not self.key:
             raise ValueError(f'Thiếu {key_name}; xem README.md.')
